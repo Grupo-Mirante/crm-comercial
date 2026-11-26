@@ -69,12 +69,36 @@ final class UsuarioService
         Auditoria::registrar($ativo ? 'usuario_ativado' : 'usuario_desativado', 'usuario', $id, ($ativo ? 'Ativou ' : 'Desativou ') . $u['login'], ['ativo' => (int) $u['ativo']], ['ativo' => $ativo ? 1 : 0]);
     }
 
+    /**
+     * Motivo pelo qual o usuário logado NÃO pode redefinir a senha de $alvo, ou null se pode.
+     * Usado pelo serviço (regra) e pelas telas (para mostrar ou não o botão).
+     *  - a senha de um administrador só é redefinida por outro administrador (quem só tem "gerenciar usuários"
+     *    não pode tomar a conta de um administrador gerando uma senha nova para ela);
+     *  - a própria senha se troca em "Minha senha" (redefinir a própria encerraria a sessão antes de mostrar a senha nova).
+     * @param array<string,mixed> $alvo precisa de id e perfil_id
+     */
+    public static function motivoSemRedefinirSenha(array $alvo): ?string
+    {
+        if ((int) $alvo['id'] === Auth::id()) {
+            return 'Para trocar a sua própria senha, use "Minha senha".';
+        }
+        if ((int) $alvo['perfil_id'] === self::perfilAdminId() && !Auth::isAdmin()) {
+            return 'Só um administrador pode redefinir a senha de outro administrador.';
+        }
+        return null;
+    }
+
     /** RN-75 — gera senha provisória (mostrada uma vez) e obriga a troca no próximo acesso. */
     public static function redefinirSenha(int $id): string
     {
-        $u = Database::first('SELECT id, login FROM usuarios WHERE id = ?', [$id]);
+        $u = Database::first('SELECT id, login, perfil_id FROM usuarios WHERE id = ?', [$id]);
         if (!$u) {
             throw new BusinessException('Usuário não encontrado.');
+        }
+        $motivo = self::motivoSemRedefinirSenha($u);
+        if ($motivo !== null) {
+            Auditoria::registrar('senha_redefinida_recusada', 'usuario', $id, 'Tentativa de redefinir a senha de ' . $u['login'] . ' recusada: ' . $motivo);
+            throw new BusinessException($motivo);
         }
         $senha = AuthService::senhaProvisoria();
         Database::query('UPDATE usuarios SET senha_hash = ?, trocar_senha = 1, senha_alterada_em = NOW(), falhas_consecutivas = 0, bloqueado_ate = NULL, updated_by = ? WHERE id = ?', [AuthService::hash($senha), Auth::id(), $id]);
