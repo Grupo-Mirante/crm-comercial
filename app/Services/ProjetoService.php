@@ -12,6 +12,8 @@ use Closure;
 /**
  * Projetos especiais vendidos por cotas.
  *  RN-32 cadastro com código, nome, prazo, empresas (ao menos uma) e cotas (nome, valor, quantidade)
+ *        o código é gerado pelo CRM ao cadastrar (PROJ-2026-0001, sequência anual — NumeracaoService::proximoProjeto)
+ *        e não muda na edição; qualquer código enviado pelo formulário é ignorado
  *  RN-33 venda bloqueada depois da data limite (data de hoje)
  *  RN-34 venda bloqueada quando a quantidade passa do saldo; a cota é travada no banco antes de gravar
  *  RN-35 projeto só vale nas empresas marcadas
@@ -147,7 +149,6 @@ final class ProjetoService
      */
     public static function salvar(?int $id, array $dados): int
     {
-        $codigo = mb_strtoupper(trim((string) ($dados['codigo'] ?? '')));
         $nome = trim((string) ($dados['nome'] ?? ''));
         $limite = data_iso((string) ($dados['data_limite_venda'] ?? ''));
         $veiculos = array_values(array_unique(array_map('intval', (array) ($dados['veiculos'] ?? []))));
@@ -164,11 +165,6 @@ final class ProjetoService
             ];
         }
         $e = [];
-        if (!preg_match('/^[A-Z0-9_-]{2,20}$/', $codigo)) {
-            $e['codigo'] = 'Código com 2 a 20 caracteres (letras, números, hífen).';
-        } elseif (Database::value('SELECT id FROM projetos_especiais WHERE codigo = ? AND id <> ?', [$codigo, $id ?? 0])) {
-            $e['codigo'] = 'Já existe projeto com este código.';
-        }
         if ($nome === '') {
             $e['nome'] = 'Informe o nome do projeto.';
         }
@@ -197,16 +193,22 @@ final class ProjetoService
         if ($e) {
             throw new ValidationException($e);
         }
-        return Database::transaction(function () use ($id, $codigo, $nome, $limite, $veiculos, $cotas, $dados) {
-            $antes = $id ? Database::first('SELECT * FROM projetos_especiais WHERE id = ?', [$id]) : null;
-            $reg = ['codigo' => $codigo, 'nome' => $nome, 'descricao' => trim((string) ($dados['descricao'] ?? '')) ?: null, 'data_limite_venda' => $limite, 'ativo' => isset($dados['ativo']) ? (int) (bool) $dados['ativo'] : 1, 'updated_by' => Auth::id()];
+        $ano = (int) date('Y');
+        if (!$id) {
+            NumeracaoService::prepararSequenciaProjeto($ano);
+        }
+        return Database::transaction(function () use ($id, $ano, $nome, $limite, $veiculos, $cotas, $dados) {
+            $antes = $id ? Database::first('SELECT * FROM projetos_especiais WHERE id = ? FOR UPDATE', [$id]) : null;
+            $reg = ['nome' => $nome, 'descricao' => trim((string) ($dados['descricao'] ?? '')) ?: null, 'data_limite_venda' => $limite, 'ativo' => isset($dados['ativo']) ? (int) (bool) $dados['ativo'] : 1, 'updated_by' => Auth::id()];
             if ($id) {
                 if (!$antes || $antes['excluido_em'] !== null) {
                     throw new BusinessException('Projeto não encontrado.');
                 }
+                $codigo = (string) $antes['codigo'];
                 Database::update('projetos_especiais', $reg, ['id' => $id]);
             } else {
-                $id = Database::insert('projetos_especiais', $reg + ['created_by' => Auth::id()]);
+                $codigo = NumeracaoService::proximoProjeto($ano);
+                $id = Database::insert('projetos_especiais', ['codigo' => $codigo] + $reg + ['created_by' => Auth::id()]);
             }
             Database::query('DELETE FROM projetos_empresas WHERE projeto_id = ?', [$id]);
             foreach ($veiculos as $v) {
@@ -240,9 +242,9 @@ final class ProjetoService
                     Database::query('DELETE FROM projetos_cotas WHERE id = ?', [$cid]);
                 }
             }
-            Auditoria::registrar($antes ? 'projeto_alterado' : 'projeto_criado', 'projeto', $id, "Projeto {$codigo} — {$nome}", $antes, $reg + ['veiculos' => $veiculos, 'cotas' => $cotas]);
+            Auditoria::registrar($antes ? 'projeto_alterado' : 'projeto_criado', 'projeto', $id, "Projeto {$codigo} — {$nome}", $antes, ['codigo' => $codigo] + $reg + ['veiculos' => $veiculos, 'cotas' => $cotas]);
             return (int) $id;
-        });
+        }, 4);
     }
 
     /** RN-39 — exclusão lógica: some das listas de venda, mas as PIs geradas continuam intactas. */

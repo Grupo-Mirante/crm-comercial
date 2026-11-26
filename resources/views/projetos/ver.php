@@ -1,7 +1,7 @@
 <nav class="breadcrumb"><a href="<?= e(url('/projetos')) ?>">Projetos especiais</a>&nbsp;›&nbsp;<?= e($P['nome']) ?></nav>
 <div class="page-head">
     <div><h1><?= e($P['nome']) ?> <span class="st <?= $st['aberto'] ? 'st-aberto' : ($st['esgotado'] ? 'st-esgotado' : 'st-encerrado') ?>"><?= e($st['situacao']) ?></span></h1>
-        <p><?= e($P['codigo']) ?> · venda até <?= e(data_br($P['data_limite_venda'])) ?> · válido para <?= e(implode(', ', array_map(fn ($i) => $veiculos[$i] ?? $i, $P['veiculos']))) ?></p></div>
+        <p><?= e($P['codigo']) ?><?= !empty($P['codigo_anterior']) ? ' (antes: ' . e($P['codigo_anterior']) . ')' : '' ?> · venda até <?= e(data_br($P['data_limite_venda'])) ?> · válido para <?= e(implode(', ', array_map(fn ($i) => $veiculos[$i] ?? $i, $P['veiculos']))) ?></p></div>
     <?php if (can('projetos.gerenciar') && !$P['excluido_em']): ?><div class="actions">
         <a class="btn btn-outline-primary" href="<?= e(url('/projetos/' . $P['id'] . '/editar')) ?>"><i class="bi bi-pencil"></i> Editar</a>
         <form method="post" action="<?= e(url('/projetos/' . $P['id'] . '/excluir')) ?>" data-confirm="Excluir o projeto? Ele some das listas de venda; as PIs já geradas continuam iguais (RN-39)." data-confirm-button="Excluir"><?= csrf_field() ?><button class="btn btn-light text-danger" type="submit"><i class="bi bi-trash"></i> Excluir</button></form>

@@ -7,6 +7,7 @@ declare(strict_types=1);
  * Todos esperam o mesmo instante (barreira) e disparam juntos.
  *   php worker.php numero  <veiculo_id> <ano> <barreira>
  *   php worker.php gerar   <usuario_id> <barreira> <estado-json-base64>
+ *   php worker.php projeto <usuario_id> <barreira> <veiculo_id>
  */
 
 use App\Core\BusinessException;
@@ -15,6 +16,7 @@ use App\Core\Env;
 use App\Services\Auth;
 use App\Services\NumeracaoService;
 use App\Services\PiService;
+use App\Services\ProjetoService;
 
 require dirname(__DIR__, 2) . '/vendor/autoload.php';
 
@@ -57,6 +59,13 @@ try {
         } catch (BusinessException $e) {
             echo json_encode(['ok' => false, 'codigo' => $e->codigo, 'mensagem' => $e->getMessage()]);
         }
+    } elseif ($modo === 'projeto') {
+        [$uid, $barreira, $vid] = [(int) $argv[2], (float) $argv[3], (int) $argv[4]];
+        Auth::como($uid);
+        $esperar($barreira);
+        $id = ProjetoService::salvar(null, ['codigo' => 'IGNORADO', 'nome' => 'Projeto simultâneo ' . getmypid(), 'data_limite_venda' => date('Y-m-d', strtotime('+3 days')),
+            'veiculos' => [$vid], 'cotas' => [['nome' => 'Ouro', 'valor' => 1000, 'quantidade_total' => 1]]]);
+        echo json_encode(['ok' => true, 'id' => $id, 'codigo' => Database::value('SELECT codigo FROM projetos_especiais WHERE id = ?', [$id])]);
     } else {
         throw new RuntimeException('modo inválido');
     }

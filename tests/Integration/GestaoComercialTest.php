@@ -143,7 +143,8 @@ final class GestaoComercialTest extends TestCase
         $r = $this->req('POST', '/projetos', ['codigo' => 'TELA1', 'nome' => 'Projeto da Tela', 'data_limite_venda' => date('Y-m-d', strtotime('+10 days')), 'veiculos' => [$this->veiculo('FM')],
             'cotas' => [['id' => 0, 'nome' => 'Única', 'valor' => '1.000,00', 'quantidade_total' => 1], ['nome' => '', 'valor' => '', 'quantidade_total' => '']]]);
         self::assertSame(302, $r->status());
-        $pid = (int) Database::value("SELECT id FROM projetos_especiais WHERE codigo = 'TELA1'");
+        $pid = (int) Database::value("SELECT id FROM projetos_especiais WHERE nome = 'Projeto da Tela'");
+        self::assertMatchesRegularExpression('/^PROJ-' . date('Y') . '-\d{4}$/', (string) Database::value('SELECT codigo FROM projetos_especiais WHERE id = ?', [$pid]), 'código gerado pelo CRM, não o digitado');
         self::assertSame(1000.0, (float) Database::value('SELECT valor FROM projetos_cotas WHERE projeto_id = ?', [$pid]));
         self::assertSame(200, $this->req('GET', '/projetos')->status());
         self::assertSame(200, $this->req('GET', '/projetos/' . $pid)->status());

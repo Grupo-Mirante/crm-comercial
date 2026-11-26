@@ -58,7 +58,7 @@ Legenda dos testes: `Calc` = `Integration/CalculadoraPrecosTest`, `Fluxo` = `Int
 ## Projetos especiais
 | RN | Regra | Código | Teste |
 |---|---|---|---|
-| 32 | Projeto com código, nome, prazo, empresas e cotas | `ProjetoService::salvar`, `ReservasProjetosController` | PRA::testRn37… · Gestao::testReservasEProjetosPelasTelas |
+| 32 | Projeto com código automático (PROJ-ANO-0001), nome, prazo, empresas e cotas | `ProjetoService::salvar`, `NumeracaoService::proximoProjeto`, `ReservasProjetosController` | PRA::testRn37… · Gestao::testReservasEProjetosPelasTelas · CodigoProjetoTest · Conc::testCadastroSimultaneoDeProjetosNuncaRepeteCodigo |
 | 33 | Bloqueio após a data-limite (comparando com hoje) | `ProjetoService`, `CalculadoraPi` (P02) | PRA::testRn33Rn35Rn34BloqueiosImpedemGerar · Compl::testRn50SituacaoDoProjeto |
 | 34 | Bloqueio acima do saldo; revalidação ao gerar | `ProjetoService::travarCotas` (`FOR UPDATE`) | PRA::testRn33Rn35Rn34… · Conc::testDuasPessoasDisputandoAUltimaCota |
 | 35 | Projeto só nas empresas marcadas | `CalculadoraPi` (P04) | PRA::testRn33Rn35Rn34… |

@@ -7,6 +7,7 @@ namespace App\Services\Instalacao;
 use App\Core\Config;
 use App\Core\Database;
 use App\Services\AuthService;
+use App\Services\NumeracaoService;
 use RuntimeException;
 
 /**
@@ -67,8 +68,9 @@ final class SeedTeste
             'carta_numero' => 'CC-001/2026', 'carta_validade' => date('Y') . '-12-31', 'cidade' => 'São Luís', 'uf' => 'MA', 'contato' => 'Atendimento', 'email' => 'midia@agencia.teste.invalid']);
 
         // Projetos do documento (cadastrados em 24/11/2026) — usados como EXEMPLO apenas na base de teste (decisão Q6)
-        foreach ([['PROJ01', 'Projeto 01', '2026-12-31', [5000, 3000, 2000], [1, 2, 2]], ['PROJ02', 'Projeto 02', '2026-11-30', [6000, 4000, 3000], [1, 2, 2]]] as [$cod, $nome, $ate, $vals, $qtds]) {
-            $pid = Database::insert('projetos_especiais', ['codigo' => $cod, 'nome' => $nome, 'descricao' => 'Exemplo do documento de processos (dados de teste).', 'data_limite_venda' => $ate]);
+        foreach ([['Projeto 01', '2026-12-31', [5000, 3000, 2000], [1, 2, 2]], ['Projeto 02', '2026-11-30', [6000, 4000, 3000], [1, 2, 2]]] as [$nome, $ate, $vals, $qtds]) {
+            $pid = Database::transaction(fn () => Database::insert('projetos_especiais', ['codigo' => NumeracaoService::proximoProjeto(2026), 'nome' => $nome,
+                'descricao' => 'Exemplo do documento de processos (dados de teste).', 'data_limite_venda' => $ate, 'created_at' => '2026-11-24 09:00:00']));
             foreach (Database::all('SELECT id FROM veiculos') as $v) {
                 Database::insert('projetos_empresas', ['projeto_id' => $pid, 'veiculo_id' => (int) $v['id']]);
             }

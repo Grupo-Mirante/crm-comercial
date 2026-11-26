@@ -112,7 +112,7 @@ Na ficha da PI → **Anexos**: aceite do cliente, briefing, parecer jurídico, c
 ## 5. Diretor
 - Vê todas as PIs e todos os relatórios.
 - Aprova os pedidos **acima da alçada** do gestor (**Aprovações**).
-- Pode cadastrar e editar **Projetos especiais** (código, nome, data-limite de venda, empresas e cotas). Não é possível reduzir cotas abaixo do que já foi vendido; excluir um projeto não apaga PIs.
+- Pode cadastrar e editar **Projetos especiais** (nome, data-limite de venda, empresas e cotas). O **código** é gerado pelo CRM ao salvar, no formato **PROJ-2026-0001** (ano do cadastro + número sequencial, que recomeça em 0001 a cada ano) e não muda depois. Não é possível reduzir cotas abaixo do que já foi vendido; excluir um projeto não apaga PIs.
 
 ## 6. Conferência / OPEC
 
