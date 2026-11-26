@@ -1,0 +1,7 @@
+# Proteção extra caso o servidor seja configurado, por engano, para expor a pasta do projeto
+# em vez da pasta "public". Nada fora de public/ deve ser acessível pelo navegador.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(?!public/) - [F,L]
+</IfModule>
+Require all denied

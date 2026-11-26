@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Testes automatizados do CRM. Usam SEMPRE um banco separado terminado em "_teste" (dados fictícios).
+  Variáveis necessárias (defina no terminal antes de rodar):
+    TEST_DB_HOST, TEST_DB_PORT (ou TEST_DB_SOCKET), TEST_DB_USERNAME, TEST_DB_PASSWORD
+  O usuário MySQL de teste precisa poder criar e apagar o banco crm_grupo_mirante_teste.
+  Rodar:  vendor/bin/phpunit
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         colors="true"
+         cacheDirectory="storage/cache/phpunit"
+         failOnWarning="true"
+         failOnRisky="true">
+    <testsuites>
+        <testsuite name="Unitarios">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="Integracao">
+            <directory>tests/Integration</directory>
+        </testsuite>
+        <testsuite name="Concorrencia">
+            <directory>tests/Concurrency</directory>
+        </testsuite>
+    </testsuites>
+    <php>
+        <env name="APP_ENV" value="testing" force="true"/>
+        <env name="APP_DEBUG" value="true" force="true"/>
+        <env name="APP_URL" value="http://localhost" force="true"/>
+        <env name="DB_DATABASE" value="crm_grupo_mirante_teste" force="true"/>
+        <env name="MAIL_HOST" value="" force="true"/>
+    </php>
+</phpunit>

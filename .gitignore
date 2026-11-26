@@ -1,0 +1,19 @@
+# Configuração com senhas — nunca versionar
+.env
+.env.*
+!.env.example
+
+# Arquivos gerados em uso
+/storage/logs/*
+/storage/cache/*
+/storage/backups/*
+/storage/exports/*
+/storage/uploads/*
+/storage/sessions/*
+/storage/instalado.lock
+!/storage/*/.gitkeep
+
+# Ferramentas locais de desenvolvimento
+/.devtools/
+/.phpunit.cache/
+.DS_Store
