@@ -55,6 +55,42 @@ final class NumeracaoService
         return sprintf('%s-%04d-%s', $prefixo, $ano, str_pad((string) $n, 4, '0', STR_PAD_LEFT));
     }
 
+    public const PREFIXO_PROJETO = 'PROJ';
+
+    /**
+     * Próximo código de projeto especial (PROJ-2026-0001). Sequência anual que recomeça em 0001 a cada ano
+     * e nunca se repete: a linha do ano é travada com SELECT … FOR UPDATE dentro da MESMA transação que grava
+     * o projeto; se a gravação falhar, o ROLLBACK devolve o número. A chave única de projetos_especiais.codigo
+     * é a última barreira. DEVE ser chamado dentro de uma transação.
+     */
+    public static function proximoProjeto(int $ano): string
+    {
+        if (!Database::connection()->inTransaction()) {
+            throw new \LogicException('O código do projeto só pode ser reservado dentro de uma transação.');
+        }
+        if (!Database::value('SELECT 1 FROM sequencias_projeto WHERE ano = ?', [$ano])) {
+            Database::query('INSERT IGNORE INTO sequencias_projeto (ano, ultimo_numero) VALUES (?, 0)', [$ano]);
+        }
+        $ultimo = (int) Database::value('SELECT ultimo_numero FROM sequencias_projeto WHERE ano = ? FOR UPDATE', [$ano]);
+        // Segurança extra: nunca abaixo do maior código já gravado no ano (ex.: cadastro manual no banco).
+        $prefixo = self::PREFIXO_PROJETO . '-' . sprintf('%04d', $ano) . '-';
+        $maior = (int) Database::value(
+            "SELECT COALESCE(MAX(CAST(SUBSTRING(codigo, ?) AS UNSIGNED)), 0) FROM projetos_especiais WHERE codigo LIKE ? AND codigo REGEXP '^[A-Z]+-[0-9]{4}-[0-9]+$'",
+            [strlen($prefixo) + 1, $prefixo . '%']
+        );
+        $n = max($ultimo, $maior) + 1;
+        Database::query('UPDATE sequencias_projeto SET ultimo_numero = ? WHERE ano = ?', [$n, $ano]);
+        return self::formatar(self::PREFIXO_PROJETO, $ano, $n);
+    }
+
+    /** Cria a linha da sequência do ano fora da transação (evita disputa de inserção no primeiro projeto do ano). */
+    public static function prepararSequenciaProjeto(int $ano): void
+    {
+        if (!Database::connection()->inTransaction()) {
+            Database::query('INSERT IGNORE INTO sequencias_projeto (ano, ultimo_numero) VALUES (?, 0)', [$ano]);
+        }
+    }
+
     /** @return array{prefixo:string,ano:int,sequencial:int}|null */
     public static function decompor(string $numero): ?array
     {

@@ -66,7 +66,7 @@ crm-grupo-mirante/
 | Acesso | `perfis`, `permissoes`, `perfil_permissoes`, `usuarios`, `login_tentativas`, `senha_tokens`, `sessoes`, `logs_auditoria` |
 | Catálogo | `empresas`, `veiculos`, `tabelas_precos`, `indices_duracao`, `programas`, `programa_esquemas`, `programa_audiencia`, `formatos_midia`, `precos_midia`, `listas_valores`, `clausulas`, `feriados`, `configuracoes` |
 | Cadastros | `clientes`, `agencias` |
-| Projetos e reservas | `projetos_especiais`, `projetos_empresas`, `projetos_cotas`, `reservas`, `reservas_itens` |
+| Projetos e reservas | `sequencias_projeto`, `projetos_especiais`, `projetos_empresas`, `projetos_cotas`, `reservas`, `reservas_itens` |
 | PI | `sequencias_pi`, `pi_grupos`, `pi_rascunhos`, `pis`, `pi_itens`, `pi_insercoes_diarias`, `pi_patrocinios`, `pi_entregas_especiais`, `pi_parcelas`, `pi_aprovacoes`, `pi_versoes`, `pi_historico`, `anexos` |
 | Conferência | `motivos_devolucao` (D01–D15), `checklist_conferencia`, `pi_conferencias`, `pi_devolucoes`, `pi_devolucao_codigos` |
 | Sistema | `notificacoes`, `rotinas_execucoes`, `migrations` |
@@ -89,6 +89,7 @@ Pontos importantes:
 
 - Número `PREFIXO-ANO-SEQUÊNCIA` (TV, FM, NEWS, G1, IMI), anual por veículo, atribuído ao **Gerar PI**.
 - `NumeracaoService`: `INSERT IGNORE` da linha de sequência **antes** da transação; dentro dela, `SELECT … FOR UPDATE` e incremento. `UNIQUE(numero)` garante no banco.
+- Código dos projetos especiais (`PROJ-2026-0001`): `NumeracaoService::proximoProjeto` usa a mesma técnica com a tabela `sequencias_projeto` (uma linha por ano, recomeça em 0001 a cada ano), dentro da transação de `ProjetoService::salvar`. `UNIQUE(codigo)` garante no banco; o código não muda na edição. A migration 002 converteu os projetos antigos e guardou o código digitado em `codigo_anterior`.
 - Cotas de projeto: `ProjetoService::travarCotas` faz `SELECT … FOR UPDATE` ordenado por id (evita deadlock) e recalcula o saldo dentro da transação da geração ou da reserva.
 - `Database::transaction($fn, 4)` repete a transação em caso de deadlock (1213) ou timeout de lock (1205).
 - Testes com processos paralelos reais (`tests/Concurrency`): numeração simultânea, disputa pela última cota, gerações simultâneas.

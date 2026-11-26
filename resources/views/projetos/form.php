@@ -8,11 +8,11 @@ $oldVeic = old('veiculos', null);
 $marcados = array_map('intval', is_array($oldVeic) ? $oldVeic : $P['veiculos']);
 ?>
 <nav class="breadcrumb"><a href="<?= e(url('/projetos')) ?>">Projetos especiais</a>&nbsp;›&nbsp;<?= $novo ? 'Novo' : e($P['nome']) ?></nav>
-<div class="page-head"><div><h1><?= $novo ? 'Novo projeto especial' : 'Editar ' . e($P['nome']) ?></h1><p>RN-32: código, nome, data limite de venda, empresas em que vale (ao menos uma) e cotas (nome, valor e quantidade). Não é possível reduzir uma cota abaixo do que já foi vendido ou reservado (RN-39).</p></div></div>
+<div class="page-head"><div><h1><?= $novo ? 'Novo projeto especial' : 'Editar ' . e($P['nome']) ?></h1><p>RN-32: nome, data limite de venda, empresas em que vale (ao menos uma) e cotas (nome, valor e quantidade). O código (PROJ-ano-sequência) é gerado automaticamente ao salvar. Não é possível reduzir uma cota abaixo do que já foi vendido ou reservado (RN-39).</p></div></div>
 <form method="post" action="<?= e($novo ? url('/projetos') : url('/projetos/' . $P['id'])) ?>" novalidate>
     <?= csrf_field() ?>
     <section class="form-section"><div class="form-section-head"><span class="step">1</span><h2>Projeto</h2></div><div class="form-section-body"><div class="row g-3">
-        <?= Form::input('codigo', 'Código', $P['codigo'] ?? '', ['req' => true, 'col' => 'col-md-2', 'maxlength' => 20, 'placeholder' => 'ex.: VERAO27']) ?>
+        <?= Form::input('codigo_exibicao', 'Código', $novo ? '' : $P['codigo'], ['col' => 'col-md-2', 'readonly' => true, 'placeholder' => 'PROJ-' . date('Y') . '-…', 'help' => $novo ? 'Gerado ao salvar' : 'Gerado pelo CRM' . (!empty($P['codigo_anterior']) ? ' (antes: ' . $P['codigo_anterior'] . ')' : ''), 'attrs' => ['tabindex' => '-1']]) ?>
         <?= Form::input('nome', 'Nome', $P['nome'] ?? '', ['req' => true, 'col' => 'col-md-6', 'maxlength' => 120]) ?>
         <?= Form::input('data_limite_venda', 'Venda até', $P['data_limite_venda'] ?? '', ['req' => true, 'col' => 'col-md-2', 'type' => 'date', 'help' => 'Comparada com a data de hoje (RN-33)']) ?>
         <?= Form::check('ativo', 'Ativo', (bool) ($P['ativo'] ?? 1), ['col' => 'col-md-2']) ?>
