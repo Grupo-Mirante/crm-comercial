@@ -5,8 +5,7 @@
     <?php if ($gerencia): ?>
     <div class="actions">
         <a class="btn btn-outline-primary" href="<?= e(url('/usuarios/' . $u['id'] . '/editar')) ?>"><i class="bi bi-pencil"></i> Editar</a>
-        <form method="post" action="<?= e(url('/usuarios/' . $u['id'] . '/redefinir-senha')) ?>" data-confirm="Gerar uma senha provisória para <?= e($u['nome']) ?>? A senha atual deixa de valer e as sessões abertas são encerradas." data-confirm-button="Gerar senha" data-confirm-danger="0">
-            <?= csrf_field() ?><button class="btn btn-light" type="submit"><i class="bi bi-key"></i> Redefinir senha</button></form>
+        <?php include __DIR__ . '/_redefinir-senha.php'; ?>
         <form method="post" action="<?= e(url('/usuarios/' . $u['id'] . '/ativo')) ?>" data-confirm="<?= (int) $u['ativo'] ? 'Desativar ' . e($u['nome']) . '? A pessoa não entra mais no sistema e as sessões abertas são encerradas. As PIs dela continuam no registro.' : 'Ativar ' . e($u['nome']) . '?' ?>" data-confirm-button="<?= (int) $u['ativo'] ? 'Desativar' : 'Ativar' ?>" data-confirm-danger="<?= (int) $u['ativo'] ? '1' : '0' ?>">
             <?= csrf_field() ?><input type="hidden" name="ativo" value="<?= (int) $u['ativo'] ? '0' : '1' ?>">
             <button class="btn btn-light<?= (int) $u['ativo'] ? ' text-danger' : '' ?>" type="submit"><i class="bi bi-<?= (int) $u['ativo'] ? 'person-x' : 'person-check' ?>"></i> <?= (int) $u['ativo'] ? 'Desativar' : 'Ativar' ?></button></form>

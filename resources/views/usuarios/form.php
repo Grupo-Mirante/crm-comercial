@@ -31,3 +31,9 @@ $novo = empty($u['id']);
         <button class="btn btn-primary" type="submit"><i class="bi bi-check2"></i> <?= $novo ? 'Cadastrar e gerar senha provisória' : 'Salvar alterações' ?></button>
     </div>
 </form>
+<?php if (!$novo): ?>
+<section class="form-section mt-3">
+    <div class="form-section-head"><span class="step"><i class="bi bi-key"></i></span><h2>Senha</h2><p>Perdeu a senha provisória ou esqueceu a senha? Gere uma nova: ela aparece uma única vez e a pessoa troca no próximo acesso.</p></div>
+    <div class="form-section-body"><?php include __DIR__ . '/_redefinir-senha.php'; ?></div>
+</section>
+<?php endif; ?>

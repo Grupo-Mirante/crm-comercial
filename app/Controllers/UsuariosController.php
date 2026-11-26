@@ -35,7 +35,7 @@ final class UsuariosController extends Controller
         } elseif ($sit === 'inativos') {
             $w[] = 'u.ativo = 0';
         }
-        $sql = 'SELECT u.id, u.nome, u.login, u.email, u.matricula, u.telefone, u.ativo, u.ultimo_acesso_em, u.trocar_senha, u.bloqueado_ate, p.nome AS perfil, g.nome AS gestor
+        $sql = 'SELECT u.id, u.perfil_id, u.nome, u.login, u.email, u.matricula, u.telefone, u.ativo, u.ultimo_acesso_em, u.trocar_senha, u.bloqueado_ate, p.nome AS perfil, g.nome AS gestor
                   FROM usuarios u JOIN perfis p ON p.id = u.perfil_id LEFT JOIN usuarios g ON g.id = u.gestor_id WHERE ' . implode(' AND ', $w);
         return $this->view('usuarios/index', [
             'titulo' => 'Usuários', 'p' => $this->paginar($sql, $p, 'u.nome', $r, 30), 'q' => $q, 'perfil' => $perfil, 'sit' => $sit,
@@ -62,7 +62,7 @@ final class UsuariosController extends Controller
         Session::forget('_senha_unica');
         $senhaUnica = is_array($senha) && (int) $senha['id'] === (int) $u['id'] ? (string) $senha['senha'] : null;
         return $this->view('usuarios/ver', [
-            'titulo' => $u['nome'], 'u' => $u, 'senhaUnica' => $senhaUnica,
+            'titulo' => $u['nome'], 'u' => $u, 'senhaUnica' => $senhaUnica, 'semRedefinir' => UsuarioService::motivoSemRedefinirSenha($u),
             'equipe' => Database::all('SELECT id, nome, login, ativo FROM usuarios WHERE gestor_id = ? ORDER BY nome', [(int) $u['id']]),
             'atividades' => Database::all('SELECT acao, entidade, entidade_id, descricao, ip, criado_em FROM logs_auditoria WHERE usuario_id = ? ORDER BY id DESC LIMIT 40', [(int) $u['id']]),
             'sessoes' => Database::all('SELECT ip, user_agent, FROM_UNIXTIME(criada_em) AS criada, FROM_UNIXTIME(ultimo_uso) AS uso FROM sessoes WHERE usuario_id = ? AND ultimo_uso > UNIX_TIMESTAMP() - 43200 ORDER BY ultimo_uso DESC', [(int) $u['id']]),
@@ -73,7 +73,7 @@ final class UsuariosController extends Controller
     public function editar(Request $r): Response
     {
         $u = $this->usuario($this->id($r));
-        return $this->view('usuarios/form', ['titulo' => 'Editar usuário', 'u' => $u, 'perfis' => $this->perfis(), 'gestores' => $this->gestores((int) $u['id'])]);
+        return $this->view('usuarios/form', ['titulo' => 'Editar usuário', 'u' => $u, 'semRedefinir' => UsuarioService::motivoSemRedefinirSenha($u), 'perfis' => $this->perfis(), 'gestores' => $this->gestores((int) $u['id'])]);
     }
 
     public function atualizar(Request $r): Response
@@ -97,7 +97,7 @@ final class UsuariosController extends Controller
         $id = $this->id($r);
         $senha = UsuarioService::redefinirSenha($id);
         Session::set('_senha_unica', ['id' => $id, 'senha' => $senha]);
-        return $this->voltar('/usuarios/' . $id, 'Senha provisória gerada. Entregue à pessoa: no próximo acesso ela cria a senha pessoal.');
+        return $this->voltar('/usuarios/' . $id, 'Senha provisória gerada. Anote agora: ela aparece só desta vez. No próximo acesso a pessoa cria a senha pessoal.');
     }
 
     public function encerrarSessoes(Request $r): Response

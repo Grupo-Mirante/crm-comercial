@@ -1,3 +1,4 @@
+<?php use App\Services\UsuarioService; ?>
 <div class="page-head">
     <div><h1>Usuários</h1><p>Cada pessoa entra com usuário e senha próprios; o perfil define o que ela vê e faz.</p></div>
     <div class="actions">
@@ -32,7 +33,8 @@
                     <?php if ($u['bloqueado_ate'] && strtotime($u['bloqueado_ate']) > time()): ?><div class="small text-red">bloqueado por tentativas</div><?php endif; ?></td>
                 <td class="small text-nowrap"><?= e($u['ultimo_acesso_em'] ? data_hora_br($u['ultimo_acesso_em']) : 'nunca') ?></td>
                 <td><div class="table-actions"><a class="btn btn-light btn-sm" href="<?= e(url('/usuarios/' . $u['id'])) ?>" title="Ver"><i class="bi bi-eye"></i></a>
-                    <?php if (can('usuarios.gerenciar')): ?><a class="btn btn-light btn-sm" href="<?= e(url('/usuarios/' . $u['id'] . '/editar')) ?>" title="Editar"><i class="bi bi-pencil"></i></a><?php endif; ?></div></td>
+                    <?php if (can('usuarios.gerenciar')): ?><a class="btn btn-light btn-sm" href="<?= e(url('/usuarios/' . $u['id'] . '/editar')) ?>" title="Editar"><i class="bi bi-pencil"></i></a>
+                    <?php $semRedefinir = UsuarioService::motivoSemRedefinirSenha($u); $compacto = true; include __DIR__ . '/_redefinir-senha.php'; ?><?php endif; ?></div></td>
             </tr>
         <?php endforeach; ?>
         </tbody>
