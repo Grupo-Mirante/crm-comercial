@@ -59,6 +59,9 @@ final class ReservaService
                 $msgs = array_map(fn ($c) => $c['fix'], array_filter($R['C'], fn ($c) => in_array($c['code'], CalculadoraPi::BLOQUEIAM, true) && $c['st'] !== 'OK'));
                 throw new BusinessException('Reserva bloqueada: ' . implode(' ', $msgs), 'reserva_bloqueada');
             }
+            if ($msg = CalculadoraPi::erroDiasSemExibicao($R)) {
+                throw new BusinessException($msg, 'dias_sem_exibicao');
+            }
             $resumo = mb_substr(implode(' · ', array_map(fn ($i) => $i['descricao'], $itens)), 0, 600);
             $estado = json_encode($S, JSON_UNESCAPED_UNICODE);
             $horas = Configuracao::inteiro('reserva_validade_horas', 24);

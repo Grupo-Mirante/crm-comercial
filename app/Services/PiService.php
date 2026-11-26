@@ -221,6 +221,9 @@ final class PiService
                 $msgs = array_map(fn ($c) => $c['fix'], array_filter($R['C'], fn ($c) => in_array($c['code'], CalculadoraPi::BLOQUEIAM, true) && $c['st'] !== 'OK'));
                 throw new BusinessException('Venda bloqueada: ' . implode(' ', array_unique($msgs)), 'projeto_bloqueado');
             }
+            if ($msg = CalculadoraPi::erroDiasSemExibicao($R)) {
+                throw new BusinessException($msg, 'dias_sem_exibicao');
+            }
 
             // RN-03/RN-04/RN-17 — numeração (uma por PI mensal na TV)
             $emissao = (string) ($S['f']['emissao'] ?? '') ?: date('Y-m-d');

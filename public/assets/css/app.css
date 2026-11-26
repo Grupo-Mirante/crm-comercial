@@ -315,7 +315,9 @@ a.kpi:hover { border-color: var(--gm-navy); box-shadow: 0 4px 14px rgba(31,58,95
 .gm-day input { width: 100%; max-width: 30px; text-align: center; border: 1px solid var(--gm-gray-200); border-radius: .25rem; font-size: .78rem; padding: 2px 0; font-weight: 600; color: var(--gm-navy); }
 .gm-day.we { background: #FCEDE3; }
 .gm-day.out { background: var(--gm-gray-100); opacity: .55; }
-.gm-day.nx { background: repeating-linear-gradient(135deg, var(--gm-gray-100) 0 4px, transparent 4px 8px); }
+.gm-day.nx { background: repeating-linear-gradient(135deg, var(--gm-gray-100) 0 4px, transparent 4px 8px); cursor: not-allowed; }
+.gm-day input:disabled { background: var(--gm-gray-100); color: var(--gm-gray-500); cursor: not-allowed; opacity: .6; }
+.gm-day.bad input:disabled { opacity: 1; }
 .gm-day.no { visibility: hidden; }
 .gm-day.bad input { border-color: var(--gm-red); background: var(--gm-red-50); color: var(--gm-red); }
 .gm-legend { display: flex; flex-wrap: wrap; gap: .8rem; font-size: .72rem; color: var(--gm-gray-500); margin-bottom: .4rem; }

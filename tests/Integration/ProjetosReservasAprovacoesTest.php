@@ -259,4 +259,24 @@ final class ProjetosReservasAprovacoesTest extends TestCase
     {
         self::assertFalse(CalculadoraPi::temBloqueio(['projBlock' => false]));
     }
+
+    public function testRn23NaoReservaInsercaoEmDiaQueOProgramaNaoVaiAoAr(): void
+    {
+        $this->como('teste.exec');
+        $S = $this->estadoBase('FM');
+        // ACOREC vai ao ar de segunda a sexta: 06/12/2026 é domingo
+        $S['ins'] = [['s' => 'ACOREC', 'dur' => 30, 'gm' => ['2026-12' => ['4' => 1, '6' => 1]]]];
+        $this->expectException(BusinessException::class);
+        $this->expectExceptionMessage('dez/26 6');
+        ReservaService::reservar($S, null);
+    }
+
+    public function testRn23ProgramaSemDiasDefinidosNaoTemRestricao(): void
+    {
+        $R = ['lines' => [['p' => ['sigla' => 'X', 'nome' => 'Variável', 'dias_exibicao' => 'Variável'], 'nome' => 'Variável', 'noAir' => []]]];
+        self::assertNull(CalculadoraPi::erroDiasSemExibicao($R));
+        $R['lines'][0]['noAir'] = ['dez/26 6'];
+        self::assertSame('Há inserções em dias em que o programa não vai ao ar. Limpe esses dias na grade: X (Variável, Variável): dez/26 6.', CalculadoraPi::erroDiasSemExibicao($R));
+    }
 }
+

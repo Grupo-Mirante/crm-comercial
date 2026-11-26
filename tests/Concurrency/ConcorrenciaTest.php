@@ -13,6 +13,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * RN-04 — dois (ou mais) vendedores gerando ao mesmo tempo não recebem o mesmo número.
  * RN-34 — duas pessoas não vendem a mesma última cota.
+ * Código automático dos projetos — duas pessoas cadastrando ao mesmo tempo não recebem o mesmo código.
  * Cada "pessoa" é um processo PHP separado, com conexão própria ao MySQL, disparando no mesmo instante.
  */
 final class ConcorrenciaTest extends TestCase
@@ -102,5 +103,35 @@ final class ConcorrenciaTest extends TestCase
         self::assertCount(4, array_unique($nums), 'quatro PIs, quatro números diferentes');
         [$in, $par] = Database::in(array_column($r, 'id'));
         Database::query("DELETE FROM pis WHERE id IN {$in}", $par);
+    }
+
+    public function testCadastroSimultaneoDeProjetosNuncaRepeteCodigo(): void
+    {
+        $u = SeedTeste::usuarios();
+        $fm = (int) Database::value("SELECT id FROM veiculos WHERE prefixo = 'FM'");
+        $ano = (int) date('Y');
+        $antes = Database::value('SELECT ultimo_numero FROM sequencias_projeto WHERE ano = ?', [$ano]);
+        $barreira = (string) (microtime(true) + 1.5);
+        $r = $this->emParalelo(array_fill(0, 6, ['projeto', (string) $u['teste.admin'], $barreira, (string) $fm]));
+        $codigos = array_column($r, 'codigo');
+        sort($codigos);
+        try {
+            self::assertCount(6, array_unique($codigos), 'nenhum código repetido: ' . implode(', ', $codigos));
+            $seq = array_map(fn ($c) => (int) substr($c, -4), $codigos);
+            self::assertSame(range($seq[0], $seq[0] + 5), $seq, 'sequência sem buracos');
+            foreach ($codigos as $c) {
+                self::assertMatchesRegularExpression('/^PROJ-' . $ano . '-\d{4}$/', $c);
+            }
+        } finally {
+            // limpeza (dados comitados pelos processos)
+            [$in, $par] = Database::in(array_column($r, 'id'));
+            Database::query("DELETE FROM projetos_cotas WHERE projeto_id IN {$in}", $par);
+            Database::query("DELETE FROM projetos_especiais WHERE id IN {$in}", $par);
+            if ($antes === null) {
+                Database::query('DELETE FROM sequencias_projeto WHERE ano = ?', [$ano]);
+            } else {
+                Database::query('UPDATE sequencias_projeto SET ultimo_numero = ? WHERE ano = ?', [(int) $antes, $ano]);
+            }
+        }
     }
 }

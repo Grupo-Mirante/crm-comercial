@@ -120,7 +120,8 @@ final class ReservasProjetosController extends Controller
         $dados = $r->all();
         $dados['cotas'] = array_values(array_filter((array) ($dados['cotas'] ?? []), fn ($c) => is_array($c) && trim((string) ($c['nome'] ?? '')) !== ''));
         $novo = ProjetoService::salvar($id, $dados);
-        return $this->voltar('/projetos/' . $novo, $id ? 'Projeto atualizado.' : 'Projeto cadastrado: já aparece nas PIs das empresas marcadas.');
+        $codigo = (string) Database::value('SELECT codigo FROM projetos_especiais WHERE id = ?', [$novo]);
+        return $this->voltar('/projetos/' . $novo, $id ? 'Projeto atualizado.' : "Projeto {$codigo} cadastrado: já aparece nas PIs das empresas marcadas.");
     }
 
     public function excluirProjeto(Request $r): Response
