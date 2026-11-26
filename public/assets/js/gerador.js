@@ -135,7 +135,8 @@
                     h += `<div class="gm-days">${Array.from({ length: 31 }, (_, k) => { const d = k + 1, di = dayInfo(M, d);
                         const c = !di.exists ? 'no' : !di.ok ? 'out' : (air && !air.includes(di.wd)) ? 'nx' : di.weekend ? 'we' : '';
                         const bad = g[d] && (c === 'out' || c === 'nx') ? ' bad' : '';
-                        return `<label class="gm-day ${c}${bad}" id="d${i}_${d}">${di.exists ? di.letter : '&nbsp;'}<input data-g="${i}|${d}" inputmode="numeric" maxlength="2" value="${esc(g[d] || '')}" aria-label="Dia ${d}"${di.exists ? '' : ' tabindex="-1"'}>${d}</label>`; }).join('')}</div>
+                        const off = c === 'nx'; // RN-23: dia em que o programa não vai ao ar fica desabilitado
+                        return `<label class="gm-day ${c}${bad}" id="d${i}_${d}"${off ? ` title="${esc(p.n)} não vai ao ar neste dia (${esc(p.d)})"` : ''}>${di.exists ? di.letter : '&nbsp;'}<input data-g="${i}|${d}" inputmode="numeric" maxlength="2" value="${esc(g[d] || '')}" aria-label="Dia ${d}${off ? ': programa não vai ao ar' : ''}"${di.exists ? '' : ' tabindex="-1"'}${off ? ' disabled' : ''}>${d}</label>`; }).join('')}</div>
                         <div class="gm-fill">Preencher <select class="form-select form-select-sm" data-pat="${i}">${air ? `<option value="${air.join('')}">dias do programa (${esc(p.d)})</option>` : ''}<option value="12345">seg a sex</option><option value="123456">seg a sáb</option><option value="0123456">todos os dias</option><option value="06">sáb e dom</option><option value="135">seg, qua, sex</option><option value="24">ter e qui</option></select>
                         com <input class="form-control form-control-sm" type="number" min="0" max="99" value="1" data-q="${i}" style="width:64px"> por dia
                         <button class="btn btn-light btn-sm" type="button" data-apply="${i}">${months.length > 1 ? 'Aplicar neste mês' : 'Aplicar no período'}</button>
@@ -365,6 +366,16 @@
         renderTab(); renderMidia(); loadFields();
     }
 
+    // RN-23: ao trocar o programa, tira da grade as inserções dos dias em que o novo programa não vai ao ar
+    function limparDiasSemExibicao(l) {
+        const p = prog(l.s), air = p ? p.dias : null;
+        if (!air || !l.gm || Array.isArray(l.gm)) return;
+        let n = 0;
+        Object.keys(l.gm).forEach(k => { const g = l.gm[k], M = monthObj(k); if (!g || Array.isArray(g)) return;
+            Object.keys(g).forEach(d => { const di = dayInfo(M, +d); if (di.exists && !air.includes(di.wd)) { delete g[d]; n++; } }); });
+        if (n) toast(`${n} dia(s) da grade foram limpos: ${p.n} não vai ao ar nesses dias (${p.d}).`, 'warning', 7000);
+    }
+
     /* ---------- eventos ---------- */
     const form = $('#form');
     form.addEventListener('submit', e => e.preventDefault());
@@ -386,7 +397,7 @@
         if (f === 'venda') $('#agBox').hidden = t.value !== 'Agência';
         if (f === 'emissao') { await aposVeiculo(); }
         if (f === 'ini' || f === 'fim') { if (!$('#pD').value) $('#pD').value = S.f.fim || ''; renderMidia(); }
-        if (/\|s$/.test(l)) { const [b, i] = l.split('|'); S[b][+i].s = CAT ? resolveSig(b, t.value) : up(t.value); renderMidia(); }
+        if (/\|s$/.test(l)) { const [b, i] = l.split('|'); S[b][+i].s = CAT ? resolveSig(b, t.value) : up(t.value); if (b === 'ins') limparDiasSemExibicao(S.ins[+i]); renderMidia(); }
         if (/\|mk$/.test(l) || /^prj\|\d+\|id$/.test(l)) { if (/^prj\|\d+\|id$/.test(l)) S.prj[+l.split('|')[1]].cota = ''; renderMidia(); }
         if (/^prj\|\d+\|cota$/.test(l)) renderMidia();
         agendar();

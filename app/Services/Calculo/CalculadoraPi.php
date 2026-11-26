@@ -450,4 +450,23 @@ final class CalculadoraPi
     {
         return (bool) $R['projBlock'];
     }
+
+    /**
+     * RN-23: inserções em dias em que o programa não vai ao ar. A tela desabilita esses dias; o servidor
+     * recusa gerar ou reservar se ainda vierem preenchidos (estado antigo, edição manual da requisição).
+     * @param array<string,mixed> $R resultado de calcular()
+     * @return string|null mensagem para o usuário, ou null quando está tudo certo
+     */
+    public static function erroDiasSemExibicao(array $R): ?string
+    {
+        $msgs = [];
+        foreach ($R['lines'] ?? [] as $x) {
+            if (!empty($x['noAir'])) {
+                $p = $x['p'] ?? null;
+                $nome = $p ? $p['sigla'] . ' (' . $p['nome'] . ($p['dias_exibicao'] ? ', ' . $p['dias_exibicao'] : '') . ')' : (string) ($x['nome'] ?? 'programa');
+                $msgs[] = $nome . ': ' . implode(', ', $x['noAir']);
+            }
+        }
+        return $msgs ? 'Há inserções em dias em que o programa não vai ao ar. Limpe esses dias na grade: ' . implode('; ', $msgs) . '.' : null;
+    }
 }

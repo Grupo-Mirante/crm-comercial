@@ -348,4 +348,25 @@ final class PiFluxoTest extends TestCase
         $this->expectException(BusinessException::class);
         PiService::gerar($this->piFm(['num' => 'FM-2026-9999']));
     }
+
+    public function testRn23NaoGeraComInsercaoEmDiaQueOProgramaNaoVaiAoAr(): void
+    {
+        $this->como('teste.exec');
+        $antes = (int) Database::value('SELECT COUNT(*) FROM pis');
+        $S = $this->piFm();
+        // ACOREC vai ao ar de segunda a sexta: 05/12/2026 é sábado e 06/12/2026 é domingo
+        $S['ins'][0]['gm']['2026-12'] += ['5' => 1, '6' => 1];
+        try {
+            PiService::gerar($S);
+            self::fail('Deveria recusar inserção em dia sem exibição');
+        } catch (BusinessException $e) {
+            self::assertSame('dias_sem_exibicao', $e->codigo);
+            self::assertStringContainsString('ACOREC', $e->getMessage());
+            self::assertStringContainsString('dez/26 5, dez/26 6', $e->getMessage());
+        }
+        self::assertSame($antes, (int) Database::value('SELECT COUNT(*) FROM pis'), 'nenhuma PI gravada');
+        // só com os dias de exibição a PI é gerada normalmente
+        self::assertSame('Enviada', PiService::gerar($this->piFm())['pis'][0]['situacao']);
+    }
 }
+
