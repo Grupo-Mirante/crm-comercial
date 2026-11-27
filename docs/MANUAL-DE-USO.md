@@ -84,7 +84,7 @@ A tela tem **8 etapas** (barra no topo). A etapa fica **verde** quando está com
 - com pendências → sai **Rascunho** (com número), e o Excel leva `_RASCUNHO` no nome;
 - **TV que atravessa meses** gera **uma PI por mês**, cada uma com o próprio número, ligadas entre si.
 
-Depois de gerar, baixe o **Excel** (A4 paisagem, uma página) ou use **Imprimir**.
+Depois de gerar, baixe o **Excel** ou o **PDF** (A4 paisagem, uma página) ou use **Imprimir**. O PDF reduz a letra automaticamente quando a PI tem muitas linhas, para caber sempre em uma página.
 
 ### 3.2 Reservar por 24 horas
 Na Nova PI, **Reservar por 24h** segura as cotas de projeto e marca o espaço (programas, patrocínios, formatos) por 24 horas. Outros vendedores veem um **aviso** se tentarem vender o mesmo espaço. A reserva **não se renova**: gere a PI antes de vencer. Em **Reservas 24h** você vê as suas, **Abre e gera a PI** ou **Libera**.

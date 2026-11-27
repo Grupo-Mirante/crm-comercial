@@ -19,6 +19,7 @@ $rota = fn (string $p) => in_array($p, \App\Core\Router::$caminhos, true);
     </div>
     <div class="actions">
         <?php if (isset($acoes['excel'])): ?><a class="btn btn-outline-primary" href="<?= e(url('/pis/' . $pi['id'] . '/excel')) ?>"><i class="bi bi-file-earmark-excel"></i> Baixar Excel</a><?php endif; ?>
+        <?php if (isset($acoes['excel'])): ?><a class="btn btn-outline-primary" href="<?= e(url('/pis/' . $pi['id'] . '/pdf')) ?>"><i class="bi bi-file-earmark-pdf"></i> Baixar PDF</a><?php endif; ?>
         <a class="btn btn-light" href="<?= e(url('/pis/' . $pi['id'] . '/imprimir')) ?>" target="_blank" rel="noopener"><i class="bi bi-printer"></i> Imprimir</a>
         <?php foreach (['editar' => ['pencil', 'btn-primary'], 'corrigir' => ['wrench', 'btn-danger']] as $k => [$ic, $cls]): if (isset($acoes[$k])): ?>
             <form method="post" action="<?= e(url('/pis/' . $pi['id'] . '/abrir/' . $k)) ?>"><?= csrf_field() ?><button class="btn <?= $cls ?>" type="submit"><i class="bi bi-<?= $ic ?>"></i> <?= e($acoes[$k]) ?></button></form>

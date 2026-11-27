@@ -15,6 +15,7 @@ use App\Services\Auth;
 use App\Services\Calculo\Catalogo;
 use App\Services\Calculo\DiasExibicao;
 use App\Services\ExcelPiService;
+use App\Services\PdfPiService;
 use App\Services\ParcelamentoService;
 use App\Services\PiService;
 use App\Services\PiWorkflow;
@@ -343,6 +344,16 @@ final class PiController extends Controller
         [$arquivo, $nome] = ExcelPiService::gerarArquivo((int) $pi['id']);
         \App\Services\Auditoria::registrar('pi_excel', 'pi', (int) $pi['id'], 'Excel baixado: ' . $nome);
         return Response::download($arquivo, $nome, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', true);
+    }
+
+    /** PDF da PI: uma página A4 paisagem (mesma permissão do Excel). */
+    public function pdf(Request $r): Response
+    {
+        $this->exigir('pis.exportar');
+        $pi = PiService::obter($this->id($r));
+        [$arquivo, $nome] = PdfPiService::gerarArquivo((int) $pi['id']);
+        \App\Services\Auditoria::registrar('pi_pdf', 'pi', (int) $pi['id'], 'PDF baixado: ' . $nome);
+        return Response::download($arquivo, $nome, 'application/pdf', true);
     }
 
     /** Versão para impressão (A4 paisagem). */

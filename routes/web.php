@@ -53,6 +53,7 @@ return function (Router $r): void {
         $r->get('/pis', [PiController::class, 'index']);
         $r->get('/pis/{id}', [PiController::class, 'ver']);
         $r->get('/pis/{id}/excel', [PiController::class, 'excel'], ['perm:pis.exportar']);
+        $r->get('/pis/{id}/pdf', [PiController::class, 'pdf'], ['perm:pis.exportar']);
         $r->get('/pis/{id}/imprimir', [PiController::class, 'imprimir']);
         $r->post('/pis/{id}/abrir/{modo}', [PiController::class, 'abrir'], ['perm:pis.criar']);
         $r->post('/pis/{id}/acao/{acao}', [PiController::class, 'acao']);

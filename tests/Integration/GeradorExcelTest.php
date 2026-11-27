@@ -10,6 +10,7 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Services\Auth;
 use App\Services\ExcelPiService;
+use App\Services\PdfPiService;
 use App\Services\PiService;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
@@ -124,8 +125,21 @@ final class GeradorExcelTest extends TestCase
             $dl = $this->req('GET', '/pis/' . $pi['id'] . '/excel');
             self::assertSame(200, $dl->status());
             self::assertStringContainsString($nome, $dl->headers()['Content-Disposition']);
+
+            // PDF: uma única página A4 paisagem
+            [$arqPdf, $nomePdf] = PdfPiService::gerarArquivo((int) $pi['id']);
+            $bytes = (string) file_get_contents($arqPdf);
+            unlink($arqPdf);
+            self::assertSame(substr($nome, 0, -5) . '.pdf', $nomePdf);
+            self::assertStringStartsWith('%PDF', $bytes);
+            self::assertSame(1, preg_match_all('#/Type\s*/Page[^s]#', $bytes), "PDF em uma página ({$pf})");
+            $pdf = $this->req('GET', '/pis/' . $pi['id'] . '/pdf');
+            self::assertSame(200, $pdf->status());
+            self::assertSame('application/pdf', $pdf->headers()['Content-Type']);
+            self::assertStringContainsString($nomePdf, $pdf->headers()['Content-Disposition']);
         }
         self::assertSame(5, (int) Database::value("SELECT COUNT(*) FROM logs_auditoria WHERE acao = 'pi_excel'"));
+        self::assertSame(5, (int) Database::value("SELECT COUNT(*) FROM logs_auditoria WHERE acao = 'pi_pdf'"));
     }
 
     public function testRascunhoComPendenciaGeraArquivoRascunho(): void

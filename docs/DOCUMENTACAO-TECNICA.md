@@ -10,7 +10,7 @@ Versão 1.0.0 · PHP 8.5 · MySQL 8 · MVC próprio, sem framework
 | Banco | MySQL 8, `utf8mb4_0900_ai_ci`, InnoDB, fuso da sessão = America/Sao_Paulo |
 | Arquitetura | MVC leve: `Router` → middlewares → `Controller` → `Service` → `Database` (PDO) → `View` (PHP puro) |
 | Front-end | Bootstrap 5, Bootstrap Icons, Chart.js, fontes Inter e Inter Tight, tudo servido localmente (sem CDN e sem Node em produção) |
-| Dependências (Composer) | `phpoffice/phpspreadsheet` (Excel), `phpmailer/phpmailer` (e-mail). Dev: `phpunit/phpunit` |
+| Dependências (Composer) | `phpoffice/phpspreadsheet` (Excel), `dompdf/dompdf` (PDF da PI), `phpmailer/phpmailer` (e-mail). Dev: `phpunit/phpunit` |
 | Idioma e formatos | pt-BR, R$ 1.234,56, DD/MM/AAAA |
 
 **Princípio central:** o servidor é a única fonte da verdade. O navegador só monta a tela; todo cálculo, validação, numeração e autorização são refeitos no servidor (`CalculadoraPi` é chamada pela tela via `/api/pis/calcular` e de novo ao gerar).
